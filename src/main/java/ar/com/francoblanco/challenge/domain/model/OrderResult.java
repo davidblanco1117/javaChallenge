@@ -22,8 +22,4 @@ public class OrderResult {
         return new OrderResult(orderId, "ERROR", 0, message, LocalDateTime.now());
     }
 
-	public OrderResult(String orderId, String status) {
-		this.orderId = orderId;
-		this.status = status;
-	}
 }
