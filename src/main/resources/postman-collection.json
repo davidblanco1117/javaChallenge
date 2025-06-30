@@ -1,0 +1,100 @@
+{
+	"info": {
+		"_postman_id": "92534629-1f36-443e-b1ec-75c496903f46",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11299891",
+		"_collection_link": "https://martian-shuttle-850867.postman.co/workspace/2025~2c70c8c4-9301-4fe0-87f9-4055a13d1805/collection/11299891-92534629-1f36-443e-b1ec-75c496903f46?action=share&source=collection_link&creator=11299891"
+	},
+	"item": [
+		{
+			"name": "Get orders",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/order/get-orders",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"order",
+						"get-orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "jmeter check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/order/check-jmeter-orders",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"order",
+						"check-jmeter-orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get catalog",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/order/get-catalog",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"order",
+						"get-catalog"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Process",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"orderId\": \"ORD-1001\",\r\n    \"customerId\" : \"CUS-001\",\r\n    \"orderAmount\" : 1100.0, \r\n    \"orderItems\": [\r\n        {\r\n            \"itemId\": \"P-001\",\r\n            \"quantity\": 1\r\n        },\r\n        \r\n        {\r\n            \"itemId\": \"P-002\",\r\n            \"quantity\": 2\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/order/processOrder",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"order",
+						"processOrder"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

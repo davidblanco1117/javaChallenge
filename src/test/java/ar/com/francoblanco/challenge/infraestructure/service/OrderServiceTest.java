@@ -269,4 +269,18 @@ class OrderServiceTest {
         when(orderStorage.getById("ORDER-1000")).thenReturn(OrderResult.error("ORDER-1000", "error"));
         assertFalse(orderService.checkJMeterOrdersSuccess());
     }
+
+    @Test
+    void testProcessOrder_DuplicateOrderId() throws Exception {
+        when(orderStorage.contains("ORDER-001")).thenReturn(true);
+        doAnswer(invocation -> {
+            Runnable runnable = invocation.getArgument(0);
+            runnable.run();
+            return null;
+        }).when(taskExecutor).execute(any(Runnable.class));
+        CompletableFuture<OrderResult> future = orderService.process(validOrderRequest);
+        OrderResult result = future.get();
+        assertEquals("ERROR", result.getStatus());
+        assertEquals("Order with id 'ORDER-001' already exists", result.getMessage());
+    }
 } 

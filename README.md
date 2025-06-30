@@ -133,6 +133,20 @@ Content-Type: application/json
 ```
 *(Los campos pueden variar según el resultado y el error)*
 
+**Restricción importante:**
+- No se permite crear una orden con un `orderId` que ya exista. Si se intenta, la API devolverá un error de validación.
+
+**Ejemplo de error:**
+```json
+{
+  "orderId": "ORDER-001",
+  "status": "ERROR",
+  "processingTimeMs": 0,
+  "message": "Order with id 'ORDER-001' already exists",
+  "processedAt": "2024-01-01T10:00:00"
+}
+```
+
 ### 2. Obtener Pedidos
 ```http
 GET /get-orders?status=PROCESSED
@@ -205,7 +219,7 @@ En la carpeta `src/main/resources` se deja una colección de Postman lista para 
 
 **Para usarla:**
 1. Abre Postman.
-2. Importa el archivo de colección desde `src/main/resources/postman-collection.json` (o nombre correspondiente).
+2. Importa el archivo de colección desde `src/main/resources/postman-collection.json` .
 3. Ejecuta y prueba los endpoints fácilmente.
 
 ## Testing
