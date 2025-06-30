@@ -9,30 +9,32 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.stereotype.Component;
 
-import ar.com.francoblanco.challenge.domain.dto.OrderRequest;
+import ar.com.francoblanco.challenge.domain.model.OrderResult;
+
 @Component
 public class OrderStorage {
 	
 
-    private final ConcurrentMap<String, OrderRequest> orders = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, OrderResult> orders = new ConcurrentHashMap<>();
     private final Queue<String> insertionOrder = new ConcurrentLinkedQueue<>();
 
-    public void save(OrderRequest order) {
+    public void save(OrderResult order) {
         if (orders.putIfAbsent(order.getOrderId(), order) == null) {
             insertionOrder.add(order.getOrderId());
         }
     }
 
-    public OrderRequest getById(String orderId) {
+    public OrderResult getById(String orderId) {
         return orders.get(orderId);
     }
 
-    public List<OrderRequest> getAllInInsertionOrder() {
-        List<OrderRequest> orderedList = new ArrayList<>();
+    public List<OrderResult> getInInsertionOrder(String status) {
+        List<OrderResult> orderedList = new ArrayList<>();
         for (String id : insertionOrder) {
-        	OrderRequest order = orders.get(id);
+        	OrderResult order = orders.get(id);
             if (order != null) {
-                orderedList.add(order);
+            	if(status==null || (status!=null && status.equalsIgnoreCase(order.getStatus())))
+            		orderedList.add(order);
             }
         }
         return orderedList;
@@ -50,4 +52,5 @@ public class OrderStorage {
         orders.clear();
         insertionOrder.clear();
     }
+
 }

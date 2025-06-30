@@ -123,21 +123,28 @@ PROCESSED
 
 ### 2. Obtener Pedidos
 ```http
+GET /get-orders?status=PROCESSED
+GET /get-orders?status=ERROR
 GET /get-orders
 ```
 
-**Respuesta:**
+**Parámetros opcionales:**
+- `status`: Filtra las órdenes por estado. Si no se especifica, devuelve todas las órdenes.
+
+**Ejemplo de respuesta:**
 ```json
 [
   {
     "orderId": "ORDER-001",
-    "customerId": "CUST-001",
-    "orderAmount": 1000.00,
-    "orderItems": [...],
+    "status": "PROCESSED",
+    "processingTimeMs": 276,
+    "message": "Order processed successfully",
     "processedAt": "2024-01-01T10:00:00"
   }
 ]
 ```
+
+**Nota:** El filtrado se realiza de manera eficiente en una sola iteración, optimizando el rendimiento incluso con grandes volúmenes de órdenes.
 
 ### 3. Obtener Catálogo
 ```http

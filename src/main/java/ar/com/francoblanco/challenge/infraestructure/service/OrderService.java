@@ -43,18 +43,23 @@ public class OrderService {
             }
             
             validateOrder(request);
-            orderStorage.save(request);
             
             long processingTime = System.currentTimeMillis() - startTime;
+            OrderResult result = OrderResult.success(request.getOrderId(), processingTime);
+            
+            orderStorage.save(result);
+            
             log.info("Order {} processed in {}ms", request.getOrderId(), processingTime);
             
-            return OrderResult.success(request.getOrderId(), processingTime);
+            return result;
             
         }, taskExecutor)
         .exceptionally(throwable -> {
             long processingTime = System.currentTimeMillis() - startTime;
+            OrderResult errorResult = OrderResult.error(request.getOrderId(), throwable.getMessage());
+            orderStorage.save(errorResult);
             log.error("Error processing order {}: {}", request.getOrderId(), throwable.getMessage());
-            return OrderResult.error(request.getOrderId(), throwable.getMessage());
+            return errorResult;
         });
     }
     
@@ -81,7 +86,8 @@ public class OrderService {
 		return catalog.getAllProducts();
 	}
 
-	public List<OrderRequest> getOrders() {
-		return orderStorage.getAllInInsertionOrder();
+	public List<OrderResult> getOrders(String status) {
+		return orderStorage.getInInsertionOrder(status);
 	}
+
 }

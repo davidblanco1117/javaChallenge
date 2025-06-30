@@ -77,4 +77,60 @@ class IntegrationOrderControllerTest {
             .andExpect(content().string("PROCESSED"));
     }
    
+    @Test
+    void getOrders_success_filter_integration() throws Exception {
+        // Primero, procesar una orden exitosa
+        OrderItemRequest itemRequest = new OrderItemRequest();
+        itemRequest.setItemId("P-001");
+        itemRequest.setQuantity(2);
+
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setOrderId("INTEGRATION-ORDER-SUCCESS");
+        orderRequest.setCustomerId("CUST-001");
+        orderRequest.setOrderAmount(BigDecimal.valueOf(1000.00));
+        orderRequest.setOrderItems(Arrays.asList(itemRequest));
+
+        MvcResult mvcResult = mockMvc.perform(post("/process")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(orderRequest)))
+            .andExpect(status().isOk())
+            .andReturn();
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch(mvcResult))
+            .andExpect(status().isOk())
+            .andExpect(content().string("PROCESSED"));
+
+        // Ahora, pedir solo las exitosas
+        mockMvc.perform(get("/get-orders?status=PROCESSED"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[*].orderId").value(org.hamcrest.Matchers.hasItem("INTEGRATION-ORDER-SUCCESS")))
+            .andExpect(jsonPath("$[*].status").value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("PROCESSED"))));
+    }
+
+    @Test
+    void getOrders_error_filter_integration() throws Exception {
+        // Procesar una orden con error (producto inexistente)
+        OrderItemRequest itemRequest = new OrderItemRequest();
+        itemRequest.setItemId("NO-EXISTE");
+        itemRequest.setQuantity(1);
+
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setOrderId("INTEGRATION-ORDER-ERROR");
+        orderRequest.setCustomerId("CUST-002");
+        orderRequest.setOrderAmount(BigDecimal.valueOf(100.00));
+        orderRequest.setOrderItems(Arrays.asList(itemRequest));
+
+        MvcResult mvcResult = mockMvc.perform(post("/process")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(orderRequest)))
+            .andExpect(status().isOk())
+            .andReturn();
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch(mvcResult))
+            .andExpect(status().isOk());
+
+        // Ahora, pedir solo las con error
+        mockMvc.perform(get("/get-orders?status=ERROR"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[*].orderId").value(org.hamcrest.Matchers.hasItem("INTEGRATION-ORDER-ERROR")))
+            .andExpect(jsonPath("$[*].status").value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("ERROR"))));
+    }
 }

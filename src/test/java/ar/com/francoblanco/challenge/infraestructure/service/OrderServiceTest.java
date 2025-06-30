@@ -76,7 +76,7 @@ class OrderServiceTest {
         assertTrue(result.getProcessingTimeMs() > 0);
         assertEquals("Order processed successfully", result.getMessage());
         
-        verify(orderStorage).save(validOrderRequest);
+        verify(orderStorage).save(any(OrderResult.class));
     }
 
     @Test
@@ -99,7 +99,7 @@ class OrderServiceTest {
         assertEquals("ERROR", result.getStatus());
         assertTrue(result.getMessage().contains("Product not found"));
         
-        verify(orderStorage, never()).save(any());
+        verify(orderStorage).save(any(OrderResult.class));
     }
 
     @Test
@@ -124,7 +124,7 @@ class OrderServiceTest {
         assertEquals("ERROR", result.getStatus());
         assertTrue(result.getMessage().contains("Order amount mismatch"));
         
-        verify(orderStorage, never()).save(any());
+        verify(orderStorage).save(any(OrderResult.class));
     }
 
     @Test
@@ -164,15 +164,46 @@ class OrderServiceTest {
     @Test
     void testGetOrders() {
         // Given
-        when(orderStorage.getAllInInsertionOrder()).thenReturn(Arrays.asList(validOrderRequest));
+        OrderResult orderResult = OrderResult.success("ORDER-001", 100);
+        when(orderStorage.getInInsertionOrder(null)).thenReturn(Arrays.asList(orderResult));
 
         // When
-        var result = orderService.getOrders();
+        var result = orderService.getOrders(null);
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(orderStorage).getAllInInsertionOrder();
+        verify(orderStorage).getInInsertionOrder(null);
+    }
+
+    @Test
+    void testGetOrders_WithSuccessFilter() {
+        // Given
+        OrderResult orderResult = OrderResult.success("ORDER-001", 100);
+        when(orderStorage.getInInsertionOrder("PROCESSED")).thenReturn(Arrays.asList(orderResult));
+
+        // When
+        var result = orderService.getOrders("PROCESSED");
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(orderStorage).getInInsertionOrder("PROCESSED");
+    }
+
+    @Test
+    void testGetOrders_WithErrorFilter() {
+        // Given
+        OrderResult orderResult = OrderResult.error("ORDER-001", "Test error");
+        when(orderStorage.getInInsertionOrder("ERROR")).thenReturn(Arrays.asList(orderResult));
+
+        // When
+        var result = orderService.getOrders("ERROR");
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(orderStorage).getInInsertionOrder("ERROR");
     }
 
     @Test
@@ -210,6 +241,6 @@ class OrderServiceTest {
         assertEquals("ORDER-001", result.getOrderId());
         assertEquals("PROCESSED", result.getStatus());
         
-        verify(orderStorage).save(validOrderRequest);
+        verify(orderStorage).save(any(OrderResult.class));
     }
 } 
