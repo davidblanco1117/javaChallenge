@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,10 +26,11 @@ public class OrderController {
 	@Autowired
 	private OrderService orderService;
 
-	@PostMapping("/process")
+	@PostMapping("/processOrder")
 	@Operation(summary = "Create a new order given a request body")
-	public CompletableFuture<ResponseEntity<String>> process(@RequestBody OrderRequest request) {
-		return orderService.process(request).thenApply(orderResult -> ResponseEntity.ok(orderResult.getStatus()));
+	public CompletableFuture<ResponseEntity<OrderResult>> process(@RequestBody OrderRequest request) {
+		return orderService.process(request).thenApply(orderResult -> new ResponseEntity<OrderResult>(orderResult,
+				orderResult.getStatus().equalsIgnoreCase("PROCESSED") ? HttpStatus.OK : HttpStatus.CONFLICT));
 	}
 
 	@GetMapping("/get-catalog")
@@ -40,10 +42,17 @@ public class OrderController {
 	@GetMapping("/get-orders")
 	@Operation(summary = "Get the list of current orders", description = "Return all the orders processed. Allows filter by status")
 	public ResponseEntity<List<OrderResult>> getOrders(
-		@Parameter(description = "Filter by status")
-		@RequestParam(value = "status", required = false) String status) {
-		
+			@Parameter(description = "Filter by status") @RequestParam(value = "status", required = false) String status) {
+
 		return ResponseEntity.ok(orderService.getOrders(status));
+	}
+
+	@GetMapping("/check-jmeter-orders")
+	@Operation(summary = "Verify if the orders from ORDER-1 to ORDER-1000 are in PROCESSED status", 
+		description = "Return true if all orders created by JMeter (ORDER-1 to ORDER-1000) are in PROCESSED status. Usefull to stress test.")
+	public ResponseEntity<Boolean> checkJMeterOrders() {
+		boolean allProcessed = orderService.checkJMeterOrdersSuccess();
+		return ResponseEntity.ok(allProcessed);
 	}
 
 }

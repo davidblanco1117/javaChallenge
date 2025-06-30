@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -62,7 +61,7 @@ class IntegrationOrderControllerTest {
         orderRequest.setOrderItems(Arrays.asList(itemRequest));
 
         // When & Then - Manejar respuesta asíncrona
-        MvcResult mvcResult = mockMvc.perform(post("/process")
+        MvcResult mvcResult = mockMvc.perform(post("/processOrder")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(orderRequest)))
             .andExpect(status().isOk())
@@ -74,7 +73,8 @@ class IntegrationOrderControllerTest {
         // Obtener el resultado asíncrono
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch(mvcResult))
             .andExpect(status().isOk())
-            .andExpect(content().string("PROCESSED"));
+            .andExpect(jsonPath("$.orderId").value("INTEGRATION-ORDER-001"))
+            .andExpect(jsonPath("$.status").value("PROCESSED"));
     }
    
     @Test
@@ -90,14 +90,15 @@ class IntegrationOrderControllerTest {
         orderRequest.setOrderAmount(BigDecimal.valueOf(1000.00));
         orderRequest.setOrderItems(Arrays.asList(itemRequest));
 
-        MvcResult mvcResult = mockMvc.perform(post("/process")
+        MvcResult mvcResult = mockMvc.perform(post("/processOrder")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(orderRequest)))
             .andExpect(status().isOk())
             .andReturn();
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch(mvcResult))
             .andExpect(status().isOk())
-            .andExpect(content().string("PROCESSED"));
+            .andExpect(jsonPath("$.orderId").value("INTEGRATION-ORDER-SUCCESS"))
+            .andExpect(jsonPath("$.status").value("PROCESSED"));
 
         // Ahora, pedir solo las exitosas
         mockMvc.perform(get("/get-orders?status=PROCESSED"))
@@ -119,13 +120,15 @@ class IntegrationOrderControllerTest {
         orderRequest.setOrderAmount(BigDecimal.valueOf(100.00));
         orderRequest.setOrderItems(Arrays.asList(itemRequest));
 
-        MvcResult mvcResult = mockMvc.perform(post("/process")
+        MvcResult mvcResult = mockMvc.perform(post("/processOrder")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(orderRequest)))
             .andExpect(status().isOk())
             .andReturn();
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch(mvcResult))
-            .andExpect(status().isOk());
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.orderId").value("INTEGRATION-ORDER-ERROR"))
+            .andExpect(jsonPath("$.status").value("ERROR"));
 
         // Ahora, pedir solo las con error
         mockMvc.perform(get("/get-orders?status=ERROR"))

@@ -13,9 +13,9 @@ public class Config {
 	@Bean(name = "executorTareas")
 	public Executor asyncExecutor() {
 	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	    executor.setCorePoolSize(50);  // Hilos en reposo
-	    executor.setMaxPoolSize(200);   // Máximo bajo carga
-	    executor.setQueueCapacity(1000); // Cola grande para picos
+		executor.setCorePoolSize(300);
+		executor.setMaxPoolSize(1000);
+		executor.setQueueCapacity(2000);
 	    executor.setThreadNamePrefix("Async-");
 	    executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 	    executor.initialize();

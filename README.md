@@ -100,26 +100,38 @@ La aplicación estará disponible en: `http://localhost:8080`
 
 ### 1. Procesar Pedido
 ```http
-POST /process
+POST /processOrder
 Content-Type: application/json
 
 {
-  "orderId": "ORDER-001",
-  "customerId": "CUST-001",
-  "orderAmount": 1000.00,
-  "orderItems": [
-    {
-      "itemId": "P-001",
-      "quantity": 2
-    }
-  ]
+    "orderId": "ORD-001",
+    "customerId" : "CUS-001",
+    "orderAmount" : 1100.0, 
+    "orderItems": [
+        {
+            "itemId": "P-001",
+            "quantity": 1
+        },
+        
+        {
+            "itemId": "P-002",
+            "quantity": 2
+        }
+    ]
 }
 ```
 
 **Respuesta:**
+```json
+{
+  "orderId": "ORDER-001",
+  "status": "PROCESSED",
+  "processingTimeMs": 276,
+  "message": "Order processed successfully",
+  "processedAt": "2024-01-01T10:00:00"
+}
 ```
-PROCESSED
-```
+*(Los campos pueden variar según el resultado y el error)*
 
 ### 2. Obtener Pedidos
 ```http
@@ -162,6 +174,40 @@ GET /get-catalog
 ]
 ```
 
+### 4. Verificar Órdenes de Carga JMeter
+```http
+GET /check-jmeter-orders
+```
+Devuelve `true` si todas las órdenes `ORDER-1` a `ORDER-1000` están en estado `PROCESSED`, o `false` si alguna falta o no fue procesada correctamente.
+
+**Ejemplo de respuesta:**
+```json
+true
+```
+
+## Pruebas de Carga con JMeter
+
+El archivo `order-process-concurrency-test.jmx` se encuentra en la carpeta `src/main/resources` del proyecto. Puedes importarlo directamente en JMeter para simular 1000 solicitudes concurrentes al endpoint `/processOrder` y ajustar los parámetros según tus necesidades de stress test.
+
+Para usarlo:
+1. Abre JMeter.
+2. Ve a `File` > `Open...` y selecciona el archivo `order-process-concurrency-test.jmx`.
+3. Ajusta la cantidad de hilos, ramp-up o el body si lo deseas.
+4. Ejecuta la prueba y analiza los resultados.
+
+## Resultados de Pruebas de Carga
+
+Consulta los resultados y análisis de las pruebas de carga en el archivo [`src/main/resources/jmeter-test-results.md`](src/main/resources/jmeter-test-results.md), donde se muestran capturas (`img/jmeter-summary.png`, `img/postman-jmeter-check.png`) y conclusiones del rendimiento bajo 1000 solicitudes concurrentes y la verificación de órdenes procesadas.
+
+## Colección de Postman
+
+En la carpeta `src/main/resources` se deja una colección de Postman lista para importar y probar todos los endpoints del sistema (`/processOrder`, `/get-orders`, `/get-catalog`, `/check-jmeter-orders`).
+
+**Para usarla:**
+1. Abre Postman.
+2. Importa el archivo de colección desde `src/main/resources/postman-collection.json` (o nombre correspondiente).
+3. Ejecuta y prueba los endpoints fácilmente.
+
 ## Testing
 
 ### Tests Unitarios
@@ -197,6 +243,16 @@ server.port=8080
 # Configuración de logging
 logging.level.ar.com.francoblanco.challenge=INFO
 logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+
+# Tomcat
+server.tomcat.max-threads=2000
+server.tomcat.accept-count=2000
+server.tomcat.max-connections=4000
+
+# Pool de threads para procesamiento asíncrono
+executorTareas.corePoolSize=300
+executorTareas.maxPoolSize=500
+executorTareas.queueCapacity=2000
 ```
 
 ### Configuración de Thread Pool

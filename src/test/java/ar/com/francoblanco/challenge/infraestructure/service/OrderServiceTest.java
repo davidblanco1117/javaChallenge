@@ -243,4 +243,30 @@ class OrderServiceTest {
         
         verify(orderStorage).save(any(OrderResult.class));
     }
+
+    @Test
+    void testCheckJMeterOrdersSuccess_AllProcessed() {
+        for (int i = 1; i <= 1000; i++) {
+            String orderId = "ORDER-" + i;
+            OrderResult result = OrderResult.success(orderId, 100);
+            when(orderStorage.getById(orderId)).thenReturn(result);
+        }
+        assertTrue(orderService.checkJMeterOrdersSuccess());
+    }
+
+    @Test
+    void testCheckJMeterOrdersSuccess_MissingOrError() {
+        for (int i = 1; i < 1000; i++) {
+            String orderId = "ORDER-" + i;
+            OrderResult result = OrderResult.success(orderId, 100);
+            when(orderStorage.getById(orderId)).thenReturn(result);
+        }
+        // ORDER-1000 falta
+        when(orderStorage.getById("ORDER-1000")).thenReturn(null);
+        assertFalse(orderService.checkJMeterOrdersSuccess());
+
+        // Ahora, con error en una orden
+        when(orderStorage.getById("ORDER-1000")).thenReturn(OrderResult.error("ORDER-1000", "error"));
+        assertFalse(orderService.checkJMeterOrdersSuccess());
+    }
 } 

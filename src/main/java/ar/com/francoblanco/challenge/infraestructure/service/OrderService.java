@@ -58,7 +58,7 @@ public class OrderService {
             long processingTime = System.currentTimeMillis() - startTime;
             OrderResult errorResult = OrderResult.error(request.getOrderId(), throwable.getMessage());
             orderStorage.save(errorResult);
-            log.error("Error processing order {}: {}", request.getOrderId(), throwable.getMessage());
+            log.error("Error processing order {}: {} with a processing time of {}", request.getOrderId(), throwable.getMessage(), processingTime);
             return errorResult;
         });
     }
@@ -89,5 +89,16 @@ public class OrderService {
 	public List<OrderResult> getOrders(String status) {
 		return orderStorage.getInInsertionOrder(status);
 	}
+
+    public boolean checkJMeterOrdersSuccess() {
+        for (int i = 1; i < 1001; i++) {
+            String orderId = "ORDER-" + i;
+            OrderResult result = orderStorage.getById(orderId);
+            if (result == null || !"PROCESSED".equalsIgnoreCase(result.getStatus())) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 }
